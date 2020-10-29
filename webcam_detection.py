@@ -2,28 +2,32 @@ import cv2
 from tkinter import *
 from PIL import Image, ImageTk
 from threading import Thread
+import numpy as np
 import time
 
 
 class WebcamApp:
     def __init__(self, address=0):
         # Tkinter Initialization
+
         self.root = Tk()
         self.root.title('Webcam')
+        self.root.geometry('600x600')
+        self.root.resizable(0, 0)
+        self.startBtn = PhotoImage(file='./icon/start.png')
+        self.snapBtn = PhotoImage(file='./icon/snap.png')
+        self.stopBtn = PhotoImage(file='./icon/stop.png')
+        self.quitBtn = PhotoImage(file='./icon/quit.png')
         self.mainPage_init()
         self.date = str(time.localtime(time.time()).tm_year) + '-' + str(time.localtime(time.time()).tm_mon) + '-' \
                     + str(time.localtime(time.time()).tm_mday) + ' ' + str(time.localtime(time.time()).tm_hour) + ':' \
                     + str(time.localtime(time.time()).tm_min) + ':' + str(time.localtime(time.time()).tm_sec)
-        self.playOrPause = True  # True: play; False: pause
+        self.playOrPause = False  # True: play; False: pause
         self.updating_flag = False
         self.saveVideoFlag = False
         self.quit_flag = False
+        self.connect2cam_flag = False
 
-        # Webcam Initialization
-        self.cap = cv2.VideoCapture(address)
-        ret, test_frame = self.cap.read()
-        self.width = test_frame.shape[1]
-        self.height = test_frame.shape[0]
         # Thread Initialization
         t0 = Thread(target=self.webcam_read)
         t0.setDaemon(True)
@@ -34,21 +38,51 @@ class WebcamApp:
 
     def mainPage_init(self):
         self.mainPage = Frame(self.root, )
-        self.mainPage.pack()
+        self.mainPage.place(x=0, y=0, width=600, height=570, )
+        # row 0 y=0:330
         self.movieLabel = Label(self.mainPage)
-        self.movieLabel.pack(padx=10, pady=10)
+        self.movieLabel.place(x=20, y=10, anchor='nw')
+        current_image = Image.fromarray(np.zeros((320, 540)))
+        imgtk = ImageTk.PhotoImage(image=current_image)
+        self.movieLabel.imgtk = imgtk
+        self.movieLabel.config(image=imgtk)
+        self.movieLabel.update()
+
+        # row 1
+        self.lb = Label(master=self.mainPage, text='摄像头IP地址：')
+        self.lb.place(x=100, y=350, anchor='nw')
+        v = StringVar(self.mainPage, value='rtsp://admin:admin@192.168.10.183/11')
+        self.IP_entry = Entry(master=self.mainPage, textvariable=v)
+        self.IP_entry.place(x=200, y=350, width=270, anchor='nw')
+
+        # row 2
+        self.captureVideoButton = Button(master=self.mainPage, image=self.startBtn, command=self.save_video)
+        self.captureVideoButton.place(x=120, y=450, anchor='center')
+        self.captureVideoButton = Button(master=self.mainPage, image=self.stopBtn, command=self.stop_video)
+        self.captureVideoButton.place(x=240, y=450, anchor='center')
+        self.captureButton = Button(master=self.mainPage, image=self.snapBtn, command=self.save_pic)
+        self.captureButton.place(x=360, y=450, anchor='center')
+        self.quit_button = Button(master=self.mainPage, image=self.quitBtn, command=self.quit)
+        self.quit_button.place(x=480, y=450, anchor='center')
+
+        # row 3
+        self.start_label = Label(master=self.mainPage, text='开始录像')
+        self.start_label.place(x=120, y=520, anchor='center')
+        self.stop_label = Label(master=self.mainPage, text='停止录像')
+        self.stop_label.place(x=240, y=520, anchor='center')
+        self.snap_label = Label(master=self.mainPage, text='截图')
+        self.snap_label.place(x=360, y=520, anchor='center')
+        self.quit_label = Label(master=self.mainPage, text='退出')
+        self.quit_label.place(x=480, y=520, anchor='center')
+
+        # row 4
         self.examine = Button(master=self.mainPage, text='查看', command=self.examine_init)
-        self.examine.pack()
+        self.examine.place(x=250, y=550, anchor='center')
         self.project = Button(master=self.mainPage, text='项目', command=self.project_init)
-        self.project.pack()
-        self.captureVideoButton = Button(master=self.mainPage, text='开始录像', command=self.save_video)
-        self.captureVideoButton.pack()
-        self.captureVideoButton = Button(master=self.mainPage, text='停止录像', command=self.stop_video)
-        self.captureVideoButton.pack()
-        self.captureButton = Button(master=self.mainPage, text='截图', command=self.save_pic)
-        self.captureButton.pack()
-        self.quit_button = Button(master=self.mainPage, text='退出', command=self.quit)
-        self.quit_button.pack()
+        self.project.place(x=350, y=550, anchor='center')
+
+
+
 
     def examine_init(self):
         self.playOrPause = False
@@ -87,6 +121,13 @@ class WebcamApp:
             self.GO_FLAG = True
 
     def save_video(self):
+        if not self.connect2cam_flag:
+            # Webcam Initialization
+            self.cap = cv2.VideoCapture(str(self.IP_entry.get()))
+            ret, test_frame = self.cap.read()
+            self.width = test_frame.shape[1]
+            self.height = test_frame.shape[0]
+            self.playOrPause = True
         if not self.saveVideoFlag:
             self.date = str(time.localtime(time.time()).tm_year) + '-' + str(time.localtime(time.time()).tm_mon) + '-' \
                         + str(time.localtime(time.time()).tm_mday) + ' ' + str(
@@ -137,7 +178,7 @@ class WebcamApp:
                 self.movieLabel.update()
 
 
-webcam = WebcamApp(0)
-# webcam = WebcamApp('rtsp://admin:admin@192.168.10.183/11')
+# webcam = WebcamApp(0)
+webcam = WebcamApp()
 webcam.root.mainloop()
 
