@@ -22,6 +22,7 @@ class WebcamApp:
         self.date = str(time.localtime(time.time()).tm_year) + '-' + str(time.localtime(time.time()).tm_mon) + '-' \
                     + str(time.localtime(time.time()).tm_mday) + ' ' + str(time.localtime(time.time()).tm_hour) + ':' \
                     + str(time.localtime(time.time()).tm_min) + ':' + str(time.localtime(time.time()).tm_sec)
+
         self.playOrPause = False  # True: play; False: pause
         self.updating_flag = False
         self.saveVideoFlag = False
@@ -50,10 +51,12 @@ class WebcamApp:
 
         # row 1
         self.lb = Label(master=self.mainPage, text='摄像头IP地址：')
-        self.lb.place(x=100, y=350, anchor='nw')
+        self.lb.place(x=100, y=350, anchor='center')
         v = StringVar(self.mainPage, value='rtsp://admin:admin@192.168.10.183/11')
         self.IP_entry = Entry(master=self.mainPage, textvariable=v)
-        self.IP_entry.place(x=200, y=350, width=270, anchor='nw')
+        self.IP_entry.place(x=280, y=350, width=270, anchor='center')
+        self.connect2camButton = Button(master=self.mainPage, text='连接', command=self.connect2cam)
+        self.connect2camButton.place(x=450, y=350, anchor='center')
 
         # row 2
         self.captureVideoButton = Button(master=self.mainPage, image=self.startBtn, command=self.save_video)
@@ -120,7 +123,7 @@ class WebcamApp:
             self.playOrPause = not self.playOrPause
             self.GO_FLAG = True
 
-    def save_video(self):
+    def connect2cam(self):
         if not self.connect2cam_flag:
             # Webcam Initialization
             self.cap = cv2.VideoCapture(str(self.IP_entry.get()))
@@ -128,16 +131,30 @@ class WebcamApp:
             self.width = test_frame.shape[1]
             self.height = test_frame.shape[0]
             self.playOrPause = True
-        if not self.saveVideoFlag:
-            self.date = str(time.localtime(time.time()).tm_year) + '-' + str(time.localtime(time.time()).tm_mon) + '-' \
-                        + str(time.localtime(time.time()).tm_mday) + ' ' + str(
-                time.localtime(time.time()).tm_hour) + ':' \
-                        + str(time.localtime(time.time()).tm_min) + ':' + str(time.localtime(time.time()).tm_sec)
-            fourcc = cv2.VideoWriter_fourcc(*'H264')
-            self.video = cv2.VideoWriter(self.date + '.avi', fourcc, 20.0, (self.width, self.height), True)
-            self.saveVideoFlag = not self.saveVideoFlag
+            self.connect2cam_flag = True
         else:
-            pass
+            self.cap.release()
+            self.cap = cv2.VideoCapture(str(self.IP_entry.get()))
+            ret, test_frame = self.cap.read()
+            self.width = test_frame.shape[1]
+            self.height = test_frame.shape[0]
+            self.playOrPause = True
+            self.connect2cam_flag = True
+
+    def save_video(self):
+        if self.connect2cam_flag:
+            if not self.saveVideoFlag:
+                self.date = str(time.localtime(time.time()).tm_year) + '-' + str(time.localtime(time.time()).tm_mon) + '-' \
+                            + str(time.localtime(time.time()).tm_mday) + ' ' + str(
+                    time.localtime(time.time()).tm_hour) + ':' \
+                            + str(time.localtime(time.time()).tm_min) + ':' + str(time.localtime(time.time()).tm_sec)
+                fourcc = cv2.VideoWriter_fourcc(*'H264')
+                self.video = cv2.VideoWriter(self.date + '.avi', fourcc, 20.0, (self.width, self.height), True)
+                self.saveVideoFlag = not self.saveVideoFlag
+            else:
+                pass
+        else:
+            print('请先点击连接以连接摄像头。')
 
     def stop_video(self):
         if self.saveVideoFlag:
@@ -159,7 +176,7 @@ class WebcamApp:
 
     def webcam_read(self):
         while not self.quit_flag:
-            if self.playOrPause:
+            if self.playOrPause and self.connect2cam_flag:
                 ret, temp_frame = self.cap.read()
                 if ret:
                     self.frame = temp_frame
