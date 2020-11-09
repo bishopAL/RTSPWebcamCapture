@@ -53,7 +53,7 @@ class WebcamApp:
 
         # row 1
         self.lb = Label(master=self.mainPage, text='摄像头IP地址：')
-        self.lb.place(x=self.resolution[0]/2-130, y=900, anchor='center')
+        self.lb.place(x=self.resolution[0]/2-200, y=900, anchor='center')
         v = StringVar(self.mainPage, value='rtsp://admin:admin@192.168.10.183/11')
         self.IP_entry = Entry(master=self.mainPage, textvariable=v)
         self.IP_entry.place(x=self.resolution[0]/2+10, y=900, width=270, anchor='center')
