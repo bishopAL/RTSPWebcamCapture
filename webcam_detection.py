@@ -9,10 +9,12 @@ import time
 class WebcamApp:
     def __init__(self, address=0):
         # Tkinter Initialization
-
+        self.windows_width = 1800
+        self.windows_height = 1000
+        self.resolution = [1440, 800]
         self.root = Tk()
-        self.root.title('Webcam')
-        self.root.geometry('600x600')
+        self.root.title('幕墙安全巡检机器人')
+        self.root.geometry(str(self.windows_width)+'x'+str(self.windows_height))
         self.root.resizable(0, 0)
         self.startBtn = PhotoImage(file='./icon/start.png')
         self.snapBtn = PhotoImage(file='./icon/snap.png')
@@ -39,11 +41,11 @@ class WebcamApp:
 
     def mainPage_init(self):
         self.mainPage = Frame(self.root, )
-        self.mainPage.place(x=0, y=0, width=600, height=570, )
+        self.mainPage.place(x=0, y=0, width=self.windows_width, height=self.windows_height, )
         # row 0 y=0:330
         self.movieLabel = Label(self.mainPage)
-        self.movieLabel.place(x=20, y=10, anchor='nw')
-        current_image = Image.fromarray(np.zeros((320, 540)))
+        self.movieLabel.place(x=self.resolution[0]/2+10, y=self.resolution[1]/2+10, anchor='center')
+        current_image = Image.fromarray(np.zeros((self.resolution[1], self.resolution[0])))
         imgtk = ImageTk.PhotoImage(image=current_image)
         self.movieLabel.imgtk = imgtk
         self.movieLabel.config(image=imgtk)
@@ -51,41 +53,38 @@ class WebcamApp:
 
         # row 1
         self.lb = Label(master=self.mainPage, text='摄像头IP地址：')
-        self.lb.place(x=100, y=350, anchor='center')
+        self.lb.place(x=self.resolution[0]/2-130, y=850, anchor='center')
         v = StringVar(self.mainPage, value='rtsp://admin:admin@192.168.10.183/11')
         self.IP_entry = Entry(master=self.mainPage, textvariable=v)
-        self.IP_entry.place(x=280, y=350, width=270, anchor='center')
+        self.IP_entry.place(x=self.resolution[0]/2+10, y=900, width=270, anchor='center')
         self.connect2camButton = Button(master=self.mainPage, text='连接', command=self.connect2cam)
-        self.connect2camButton.place(x=450, y=350, anchor='center')
+        self.connect2camButton.place(x=self.resolution[0]/2+260, y=900, anchor='center')
 
         # row 2
         self.captureVideoButton = Button(master=self.mainPage, image=self.startBtn, command=self.save_video)
-        self.captureVideoButton.place(x=120, y=450, anchor='center')
+        self.captureVideoButton.place(x=1530, y=300, anchor='center')
         self.captureVideoButton = Button(master=self.mainPage, image=self.stopBtn, command=self.stop_video)
-        self.captureVideoButton.place(x=240, y=450, anchor='center')
+        self.captureVideoButton.place(x=1670, y=300, anchor='center')
         self.captureButton = Button(master=self.mainPage, image=self.snapBtn, command=self.save_pic)
-        self.captureButton.place(x=360, y=450, anchor='center')
+        self.captureButton.place(x=1530, y=500, anchor='center')
         self.quit_button = Button(master=self.mainPage, image=self.quitBtn, command=self.quit)
-        self.quit_button.place(x=480, y=450, anchor='center')
+        self.quit_button.place(x=1670, y=500, anchor='center')
 
         # row 3
         self.start_label = Label(master=self.mainPage, text='开始录像')
-        self.start_label.place(x=120, y=520, anchor='center')
+        self.start_label.place(x=1530, y=380, anchor='center')
         self.stop_label = Label(master=self.mainPage, text='停止录像')
-        self.stop_label.place(x=240, y=520, anchor='center')
-        self.snap_label = Label(master=self.mainPage, text='截图')
-        self.snap_label.place(x=360, y=520, anchor='center')
+        self.stop_label.place(x=1670, y=380, anchor='center')
+        self.snap_label = Label(master=self.mainPage, text='拍照')
+        self.snap_label.place(x=1530, y=580, anchor='center')
         self.quit_label = Label(master=self.mainPage, text='退出')
-        self.quit_label.place(x=480, y=520, anchor='center')
+        self.quit_label.place(x=1670, y=580, anchor='center')
 
         # row 4
         self.examine = Button(master=self.mainPage, text='查看', command=self.examine_init)
-        self.examine.place(x=250, y=550, anchor='center')
+        self.examine.place(x=1600, y=730, anchor='center')
         self.project = Button(master=self.mainPage, text='项目', command=self.project_init)
-        self.project.place(x=350, y=550, anchor='center')
-
-
-
+        self.project.place(x=1600, y=780, anchor='center')
 
     def examine_init(self):
         self.playOrPause = False
@@ -188,7 +187,7 @@ class WebcamApp:
                 if self.saveVideoFlag:
                     self.video.write(self.frame)
                 img = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGBA)
-                current_image = Image.fromarray(img).resize((540, 320))
+                current_image = Image.fromarray(img).resize((self.resolution[0], self.resolution[1]))
                 imgtk = ImageTk.PhotoImage(image=current_image)
                 self.movieLabel.imgtk = imgtk
                 self.movieLabel.config(image=imgtk)
